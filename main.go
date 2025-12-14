@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 )
@@ -14,20 +15,6 @@ func main() {
 }
 
 func CountWords(data []byte) int {
-
-	if len(data) == 0 {
-		return 0
-	}
-
-	wordCount := 0
-
-	for _, x := range data {
-		if x == ' ' {
-			wordCount++
-		}
-	}
-
-	wordCount++
-
-	return wordCount
+	words := bytes.Fields(data)
+	return len(words)
 }
