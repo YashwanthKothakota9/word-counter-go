@@ -3,15 +3,41 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 )
 
 func main() {
-	data, _ := os.ReadFile("./words.txt")
 
-	wordCount := CountWords(data)
+	filename := "./words.txt"
 
-	fmt.Println(wordCount)
+	log.SetFlags(0)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatalln("failed to read file:", err)
+	}
+
+	PrintFileContents(file)
+
+	// wordCount := CountWords(file)
+
+	// fmt.Println(wordCount)
+}
+
+func PrintFileContents(file *os.File) {
+	const bufferSize = 4096 //sectorsize
+	buffer := make([]byte, bufferSize)
+
+	totalSize := 0
+	for {
+		size, err := file.Read(buffer)
+		if err != nil {
+			break
+		}
+		totalSize += size
+	}
+	fmt.Println("total bytes read:", totalSize)
 }
 
 func CountWords(data []byte) int {
