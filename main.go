@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"unicode"
+	"unicode/utf8"
 )
 
 func main() {
@@ -26,23 +27,32 @@ func main() {
 func CountWordsInFile(file *os.File) int {
 	wordCount := 0
 	isInsideWord := false
+
 	const bufferSize = 4096 //sectorsize
 	buffer := make([]byte, bufferSize)
+	leftOver := []byte{}
 
 	for {
 		size, err := file.Read(buffer)
 		if err != nil {
 			break
 		}
-		isInsideWord = !unicode.IsSpace(rune(buffer[0])) && isInsideWord
 
-		bufferCount := CountWords(buffer[:size])
-		if isInsideWord {
-			bufferCount -= 1
+		subBuffer := append(leftOver, buffer[:size]...)
+
+		for len(subBuffer) > 0 {
+			r, rsize := utf8.DecodeRune(subBuffer)
+			if r == utf8.RuneError {
+				break
+			}
+			subBuffer = subBuffer[rsize:]
+			if !unicode.IsSpace(r) && !isInsideWord {
+				wordCount++
+			}
+			isInsideWord = !unicode.IsSpace(r)
 		}
-		wordCount += bufferCount
-
-		isInsideWord = !unicode.IsSpace(rune(buffer[size-1]))
+		leftOver = leftOver[:0]
+		leftOver = append(leftOver, subBuffer...)
 	}
 
 	return wordCount
